@@ -1,0 +1,3 @@
+name: services-prometheus
+runtime: nodejs
+description: is a metrics-based monitoring and alerting stack made for dynamic environments.

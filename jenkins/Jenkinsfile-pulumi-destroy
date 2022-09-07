@@ -1,0 +1,42 @@
+pipeline {
+    agent {
+        label 'pulumi'
+    }
+
+    environment {
+        PULUMI_ACCESS_TOKEN=credentials('PULUMI_ACCESS_TOKEN')
+    }
+
+    stages {
+        stage('check if  dir exist') {
+            when { expression { return fileExists ('services-prometheus') } }
+            steps {
+                deleteDir()
+            }
+        }
+
+        stage('Repo clone') {
+            steps {
+                git url: 'https://github.com/k8s-cicd-tools/services-prometheus.git', branch: 'main'
+            }
+        }
+
+        stage ("Pulumi destroy") {
+            steps {
+                nodejs(nodeJSInstallationName: "node 16.17.0") {
+                    withEnv(["PATH+PULUMI=$HOME/.pulumi/bin"]) {
+                        sh "cd pulumi && npm install"
+                        sh "cd pulumi; pulumi stack select dev"
+                        sh "cd pulumi; pulumi destroy --yes"
+                    }
+                }
+            }
+        }
+
+        stage('Cleaning') {
+            steps {
+                deleteDir()
+            }
+        }
+    }
+}
